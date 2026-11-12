@@ -1,0 +1,35 @@
+
+services:
+  web:
+    build: ./app
+    container_name: student_web
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_USER: student
+      DB_PASSWORD: student123
+      DB_NAME: tasks
+
+  db:
+    image: mysql:8.0
+    container_name: student_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: tasks
+      MYSQL_USER: student
+      MYSQL_PASSWORD: student123
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "student", "-pstudent123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:
